@@ -1,5 +1,6 @@
 package dataModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public non-sealed class ComplexTask extends Task {
@@ -7,6 +8,7 @@ public non-sealed class ComplexTask extends Task {
 
     public ComplexTask(int idTask, String statusTask) {
         super(idTask, statusTask);
+        tasks = new ArrayList<Task>();
     }
 
     public void setTasks(List<Task> tasks) {
