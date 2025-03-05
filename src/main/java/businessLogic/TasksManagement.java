@@ -10,6 +10,15 @@ public class TasksManagement {
 
     public TasksManagement(Map<Employee, List<Task>> tasks) {
         this.tasks = tasks;
+        tasks = new HashMap<>();
+    }
+
+    public Map<Employee, List<Task>> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(Map<Employee, List<Task>> tasks) {
+        this.tasks = tasks;
     }
 
     public void assignTaskToEmployee(int idEmployee, Task task) {
