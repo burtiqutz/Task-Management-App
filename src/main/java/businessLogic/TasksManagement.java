@@ -8,9 +8,8 @@ import java.util.*;
 public class TasksManagement {
     private Map<Employee, List<Task>> tasks;
 
-    public TasksManagement(Map<Employee, List<Task>> tasks) {
-        this.tasks = tasks;
-        tasks = new HashMap<>();
+    public TasksManagement() {
+        this.tasks = new HashMap<>();
     }
 
     public Map<Employee, List<Task>> getTasks() {
@@ -21,14 +20,20 @@ public class TasksManagement {
         this.tasks = tasks;
     }
 
+    public void addEmployee(Employee employee) {
+        this.tasks.put(employee, new ArrayList<>());
+    }
+
     public void assignTaskToEmployee(int idEmployee, Task task) {
         for(Employee employee : tasks.keySet()) {
             if(employee.getIdEmployee() == idEmployee) {
+                //  I think this is redundant
                 tasks.computeIfAbsent(employee, k -> new ArrayList<Task>());    //  Creates entry for employee if absent
                 tasks.get(employee).add(task);
             }
         }
     }
+
     public int calculateEmployeeWork (int idEmployee) {
         int totalDuration = 0;
         //  Find the employee according to the id
@@ -57,6 +62,58 @@ public class TasksManagement {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    public Task getTask(int idTask) {
+        for(Employee employee : tasks.keySet()) {
+            for(Task task : tasks.get(employee)) {
+                if(task.getIdTask() == idTask) {
+                    return task;
+                }
+            }
+        }
+        return null;
+    }
+
+    public int getEmployeeId (String employeeName) {
+        for(Employee employee : tasks.keySet()) {
+            if(employee.getName().equals(employeeName)) {
+                return employee.getIdEmployee();
+            }
+        }
+        return -1;
+    }
+
+    public Employee getEmployee(String employeeName) {
+        for(Employee employee : tasks.keySet()) {
+            if(employee.getName().equals(employeeName)) {
+                return employee;
+            }
+        }
+        return null;
+    }
+
+    public Employee getEmployeeByTaskId(int taskID) {
+        for(Employee employee : tasks.keySet()) {
+            for(Task task : tasks.get(employee)) {
+                if(task.getIdTask() == taskID) {
+                    return employee;
+                }
+            }
+        }
+        return null;
+    }
+
+    //  Used for testing
+    public void printTasks() {
+        System.out.println("--------------dumping tasks------------");
+        for(Employee employee : tasks.keySet()) {
+            System.out.println("Employee Name: " + employee.getName() + ", Employee ID: " + employee.getIdEmployee());
+            for(Task task : tasks.get(employee)) {
+                System.out.println("Task ID: " + task.getIdTask());
+                System.out.println("Task Status: " + task.getStatusTask());
             }
         }
     }
