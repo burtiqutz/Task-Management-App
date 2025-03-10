@@ -1,10 +1,22 @@
 package userInterface;
 
+
+import businessLogic.TasksManagement;
+import dataAccess.SerializationOperations;
+import dataModel.Employee;
+import dataModel.Task;
+import org.jetbrains.annotations.NotNull;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.List;
+import java.util.Map;
+
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import java.awt.*;
+import java.io.IOException;
 
 public class View extends JFrame {
     private JPanel contentPane;
@@ -54,17 +66,43 @@ public class View extends JFrame {
     private JTextField statusIdTextField;
     private JButton changeStatusButton;
 
+    //  Utility variables
+    private JFrame statisticsFrame;
+    private JFrame sortingFrame;
+    private JPanel utilityPanel;
+    private JButton sortingButton;
+    private JButton statisticsButton;
 
     Controller controller = new Controller(this);
+    private SerializationOperations serializationOperations;
 
-    public View(String name) {
+    public View(String name) throws IOException, ClassNotFoundException {
         super(name);
         this.prepareGui();
+        this.serializationOperations = new SerializationOperations(controller.getTasksManagement());
+        this.updateTreeFromTasksManagement(controller.getTasksManagement());
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // Call serialize to save data when the window is closing
+                try {
+                    serializationOperations.serialize();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    // Handle the exception (show an error message, etc.)
+                }
+            }
+        });
     }
 
-    public void prepareGui() {
+    private void prepareGui() {
         this.setSize(600, 500);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        try{UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
 
         //this.contentPane = new JPanel(new GridLayout(0, 1));
         this.contentPane = new JPanel();
@@ -75,8 +113,28 @@ public class View extends JFrame {
         this.prepareTreePanel();
         this.prepareWorkHoursPanel();
         this.prepareStatusPanel();
+        this.prepareUtilityPanel();
+
         this.setContentPane(this.contentPane);
     }
+
+    private void prepareUtilityPanel() {
+        this.utilityPanel = new JPanel();
+        this.utilityPanel.setLayout(new BoxLayout(utilityPanel, BoxLayout.X_AXIS));
+
+        this.sortingButton = new JButton("Sort Employees");
+        this.sortingButton.addActionListener(controller);
+        this.sortingButton.setActionCommand("SORT_EMPLOYEE");
+
+        this.statisticsButton = new JButton("Show Statistics");
+        this.statisticsButton.addActionListener(controller);
+        this.statisticsButton.setActionCommand("SHOW_STATISTICS");
+
+        this.utilityPanel.add(this.sortingButton);
+        this.utilityPanel.add(this.statisticsButton);
+        this.contentPane.add(this.utilityPanel);
+    }
+
 
     private void prepareEmployeePanel() {
         this.employeePanel = new JPanel();
@@ -163,6 +221,18 @@ public class View extends JFrame {
         this.taskPanel.add(this.simpleTaskPanel, "Simple Task");
         this.taskPanel.add(this.complexTaskPanel, "Complex Task");
 
+        JPanel switchButtonPanel = getSwitchButtonPanel();
+
+        this.contentPane.add(switchButtonPanel, BorderLayout.NORTH);
+
+        this.contentPane.add(this.taskPanel, BorderLayout.CENTER);
+
+        this.taskPanel.setPreferredSize(new Dimension(600, 25));
+        this.taskPanel.setMaximumSize(new Dimension(600, 25));
+    }
+
+    @NotNull
+    private JPanel getSwitchButtonPanel() {
         JButton switchToSimpleTaskButton = new JButton("Show Simple Task");
         switchToSimpleTaskButton.addActionListener(e -> cardLayout.show(taskPanel, "Simple Task"));
 
@@ -172,13 +242,7 @@ public class View extends JFrame {
         JPanel switchButtonPanel = new JPanel();
         switchButtonPanel.add(switchToSimpleTaskButton);
         switchButtonPanel.add(switchToComplexTaskButton);
-
-        this.contentPane.add(switchButtonPanel, BorderLayout.NORTH);
-
-        this.contentPane.add(this.taskPanel, BorderLayout.CENTER);
-
-        this.taskPanel.setPreferredSize(new Dimension(600, 25));
-        this.taskPanel.setMaximumSize(new Dimension(600, 25));
+        return switchButtonPanel;
     }
 
     private void prepareTreePanel() {
@@ -241,8 +305,12 @@ public class View extends JFrame {
 
     public void updateEmployeeTree(String employeeName, String taskID, String newTaskType, String newTaskDetails) {
         DefaultMutableTreeNode employeeNode = findOrCreateEmployeeNode(employeeName);
-        DefaultMutableTreeNode taskNode = new DefaultMutableTreeNode(newTaskType + ": " + newTaskDetails);
-        employeeNode.add(taskNode);
+        //  Check if employee has task assigned
+        if(taskID != null && !taskID.isEmpty()) {
+            DefaultMutableTreeNode taskNode = new DefaultMutableTreeNode(newTaskType + ": " + newTaskDetails);
+            employeeNode.add(taskNode);
+        }
+
         treeModel.reload();
     }
 
@@ -256,6 +324,7 @@ public class View extends JFrame {
         // If the employee is not found, create a new one
         DefaultMutableTreeNode employeeNode = new DefaultMutableTreeNode(employeeName);
         rootNode.add(employeeNode);
+
         return employeeNode;
     }
 
@@ -306,4 +375,31 @@ public class View extends JFrame {
     public JTextField getStatusIdTextField() {
         return statusIdTextField;
     }
+
+    public void updateTreeFromTasksManagement(TasksManagement tasksManagement) {
+        // Clear the existing tree nodes
+        rootNode.removeAllChildren();
+
+        // Get the tasks map from the TasksManagement object
+        Map<Employee, List<Task>> tasks = controller.getTasksManagement().getTasks();
+
+        // Iterate through employees and their assigned tasks
+        for (Employee employee : tasks.keySet()) {
+            DefaultMutableTreeNode employeeNode = new DefaultMutableTreeNode(employee.getName());
+
+            // For each task assigned to the employee, create a task node
+            for (Task task : tasks.get(employee)) {
+                DefaultMutableTreeNode taskNode = new DefaultMutableTreeNode(
+                        "Task ID: " + task.getIdTask() + " | Status: " + task.getStatusTask());
+                employeeNode.add(taskNode);
+            }
+
+            // Add the employee node to the root node
+            rootNode.add(employeeNode);
+        }
+
+        // Notify the tree model that the tree has changed
+        treeModel.reload();
+    }
+
 }

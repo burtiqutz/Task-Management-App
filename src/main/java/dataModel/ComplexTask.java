@@ -1,9 +1,10 @@
 package dataModel;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public non-sealed class ComplexTask extends Task {
+public non-sealed class ComplexTask extends Task implements Serializable {
     private List<Task> tasks;
 
     public ComplexTask(int idTask, String statusTask) {
@@ -26,5 +27,13 @@ public non-sealed class ComplexTask extends Task {
             duration += task.estimateDuration();
         }
         return duration;
+    }
+    @Override
+    public String toString() {
+        String tasksString = "";
+        for(Task task : tasks){
+            tasksString += task.toString() + "\n";
+        }
+        return super.toString() + " ->" + tasksString;
     }
 }

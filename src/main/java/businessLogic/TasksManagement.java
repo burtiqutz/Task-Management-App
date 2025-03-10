@@ -3,9 +3,10 @@ package businessLogic;
 import dataModel.Employee;
 import dataModel.Task;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class TasksManagement {
+public class TasksManagement implements Serializable {
     private Map<Employee, List<Task>> tasks;
 
     public TasksManagement() {
@@ -39,7 +40,7 @@ public class TasksManagement {
         //  Find the employee according to the id
         for(Employee employee : tasks.keySet()) {
             if(employee.getIdEmployee() == idEmployee) {
-               //  If found, compute total work time
+                //  If found, compute total work time
                 for(Task task : tasks.get(employee)) {
                     if(task.getStatusTask().equals("Completed")) {
                         totalDuration += task.estimateDuration();

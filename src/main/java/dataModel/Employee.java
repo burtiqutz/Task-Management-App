@@ -1,6 +1,8 @@
 package dataModel;
 
-public class Employee {
+import java.io.Serializable;
+
+public class Employee implements Serializable {
     private int idEmployee;
     private String name;
 
@@ -42,5 +44,9 @@ public class Employee {
         return this.idEmployee == other.idEmployee; // Compare IDs
     }
 
+    @Override
+    public String toString() {
+        return "Employee [idEmployee=" + idEmployee + ", name=" + name + "]";
+    }
 
 }

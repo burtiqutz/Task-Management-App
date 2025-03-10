@@ -1,6 +1,8 @@
 package userInterface;
 
 import businessLogic.TasksManagement;
+import dataAccess.SerializationOperations;
+import dataModel.ComplexTask;
 import dataModel.Employee;
 import dataModel.SimpleTask;
 import dataModel.Task;
@@ -8,16 +10,21 @@ import dataModel.Task;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Controller implements ActionListener {
     private View view;
     private TasksManagement tasksManagement;
     private int idEmployee = -1;
 
-    public Controller(View v){
+    public Controller(View v) throws IOException, ClassNotFoundException {
         this.view = v;
-        this.tasksManagement = new TasksManagement();
+        this.tasksManagement = SerializationOperations.deserialize();
+        //this.tasksManagement = new TasksManagement();
     }
+
 
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
@@ -61,6 +68,7 @@ public class Controller implements ActionListener {
         String employeeName = view.getEmployeeNameForWorkHoursTextField().getText().trim();
         if (employeeName.isEmpty()) {
             System.out.println("Employee name cannot be empty!");
+            view.showError("Employee name cannot be empty!");
             return;
         }
         Employee employee = tasksManagement.getEmployee(employeeName);
@@ -151,7 +159,7 @@ public class Controller implements ActionListener {
             view.showError("Employee name cannot be empty!");
             return;
         }
-
+        //  TODO: transform into function
         //  Find employee or create him
         Employee employee = tasksManagement.getEmployee(employeeName);
         if(employee==null){
@@ -160,17 +168,30 @@ public class Controller implements ActionListener {
             //  Add employee to table
             tasksManagement.addEmployee(employee);
         }
-        //  ISSUE: doesn't show error when adding same complex task id, but works for simple task match
+
         //  Check task ID to be unique
         if(tasksManagement.getTask(Integer.parseInt(taskID)) != null){
             System.out.println("Task already exists!");
             view.showError("Task already exists");
             return;
         }
+        List<Task> list = new ArrayList<Task>();
+        while(tasksManagement.getTask(Integer.parseInt(taskID)) != null){
+            list.add(tasksManagement.getTask(Integer.parseInt(taskID)));
+        }
+        //  TODO i think Create/find task
+        ComplexTask task = (ComplexTask) tasksManagement.getTask(Integer.parseInt(taskID));
+        if(task==null){
+            task = new ComplexTask(Integer.parseInt(taskID), "Uncompleted");
+        }
+        task.setTasks(list);
 
         System.out.println("Added Complex Task: " + employeeName + " with ID: " + taskID);
 
-        view.updateEmployeeTree(employeeName, taskID ,"Complex Task", formattedTaskIds);
+        view.updateEmployeeTree(employeeName, taskID ,"Complex Task", task.toString());
     }
 
+    public TasksManagement getTasksManagement() {
+        return tasksManagement;
+    }
 }

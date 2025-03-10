@@ -1,6 +1,8 @@
 package dataModel;
 
-public sealed abstract class Task permits SimpleTask, ComplexTask {
+import java.io.Serializable;
+
+public sealed abstract class Task implements Serializable permits SimpleTask, ComplexTask {
     private int idTask;
     private String statusTask;
 
@@ -25,5 +27,9 @@ public sealed abstract class Task permits SimpleTask, ComplexTask {
     public Task(int idTask, String statusTask) {
         this.idTask = idTask;
         this.statusTask = statusTask;
+    }
+    @Override
+    public String toString() {
+        return "Task: " + idTask + " Status: " + statusTask;
     }
 }

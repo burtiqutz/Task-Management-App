@@ -1,6 +1,8 @@
 package dataModel;
 
-public non-sealed class SimpleTask extends Task {
+import java.io.Serializable;
+
+public non-sealed class SimpleTask extends Task implements Serializable {
     private int startHour;
     private int endHour;
 
@@ -29,5 +31,9 @@ public non-sealed class SimpleTask extends Task {
     @Override
     public int estimateDuration() {
         return endHour - startHour;
+    }
+    @Override
+    public String toString() {
+        return super.toString() + " [startHour=" + startHour + ", endHour=" + endHour + "]";
     }
 }
