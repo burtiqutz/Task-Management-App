@@ -17,7 +17,7 @@ import java.util.List;
 public class Controller implements ActionListener {
     private View view;
     private TasksManagement tasksManagement;
-    private int idEmployee = -1;
+    //private int idEmployee = -1;
 
     public Controller(View v) throws IOException, ClassNotFoundException {
         this.view = v;
@@ -44,9 +44,23 @@ public class Controller implements ActionListener {
             case "CHANGE_STATUS":
                 this.handleChangeStatus();
                 break;
+            case "SHOW_STATISTICS":
+                this.handleShowStatistics();
+                break;
+            case "SORT_EMPLOYEES":
+                this.handleSortEmployees();
+                break;
             default:
                 System.out.println("Invalid command");
         }
+    }
+
+    private void handleSortEmployees() {
+        view.showSortedEmployees(this.tasksManagement);
+    }
+
+    private void handleShowStatistics() {
+        view.showStatisticsFrame(this.tasksManagement);
     }
 
     private void handleChangeStatus() {
@@ -88,6 +102,7 @@ public class Controller implements ActionListener {
 
     private void handleAddEmployee() {
         String employeeName = view.getEmployeeTextField().getText().trim();
+        int employeeID = Integer.parseInt(view.getEmployeeIDTextField().getText().trim());
 
         if (employeeName.isEmpty()) {
             System.out.println("Employee name cannot be empty!");
@@ -103,7 +118,7 @@ public class Controller implements ActionListener {
             return;
         }
 
-        employee = new Employee(++idEmployee, employeeName);
+        employee = new Employee(employeeID, employeeName);
         tasksManagement.addEmployee(employee);
 
         // TODO: implement serialization
@@ -130,9 +145,8 @@ public class Controller implements ActionListener {
         Employee employee = tasksManagement.getEmployee(employeeName);
         if(employee==null){
             System.out.println("Employee not found");
-            employee = new Employee(++idEmployee, employeeName);
-            //  Add employee to table
-            tasksManagement.addEmployee(employee);
+            view.showError("Add employee first");
+            return;
         }
 
         //  Check task ID to be unique
@@ -158,21 +172,19 @@ public class Controller implements ActionListener {
         //  Get individual id's for computing complex task
         String[] taskList = view.getComplexTaskTaskListTextField().getText().trim().split("[,\\s]+");
 
-        //  Recreate task list for adding to table
+        //  Recreate task list for adding to tree
         String formattedTaskIds = String.join(", ", taskList);
         if (employeeName.isEmpty()) {
             System.out.println("Employee name cannot be empty!");
             view.showError("Employee name cannot be empty!");
             return;
         }
-        //  TODO: transform into function
         //  Find employee or create him
         Employee employee = tasksManagement.getEmployee(employeeName);
         if(employee==null){
             System.out.println("Employee not found");
-            employee = new Employee(++idEmployee, employeeName);
-            //  Add employee to table
-            tasksManagement.addEmployee(employee);
+            view.showError("Add employee first");
+            return;
         }
 
         //  Check task ID to be unique
@@ -185,10 +197,12 @@ public class Controller implements ActionListener {
         while(tasksManagement.getTask(Integer.parseInt(taskID)) != null){
             list.add(tasksManagement.getTask(Integer.parseInt(taskID)));
         }
-        //  TODO i think Create/find task
+
+        //  Create/find task
         ComplexTask task = (ComplexTask) tasksManagement.getTask(Integer.parseInt(taskID));
         if(task==null){
             task = new ComplexTask(Integer.parseInt(taskID), "Uncompleted");
+            tasksManagement.assignTaskToEmployee(tasksManagement.getEmployeeId(employeeName), task);
         }
         task.setTasks(list);
 

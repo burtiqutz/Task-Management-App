@@ -2,6 +2,7 @@ package userInterface;
 
 
 import businessLogic.TasksManagement;
+import businessLogic.Utility;
 import dataAccess.SerializationOperations;
 import dataModel.Employee;
 import dataModel.Task;
@@ -25,6 +26,8 @@ public class View extends JFrame {
     private JPanel employeePanel;
     private JLabel employeeLabel;
     private JTextField employeeTextField;
+    private JTextField employeeIDTextField;
+    private JLabel employeeIDLabel;
     private JButton addEmployeeButton;
 
     //  Tasks panel variables
@@ -116,6 +119,7 @@ public class View extends JFrame {
         this.prepareUtilityPanel();
 
         this.setContentPane(this.contentPane);
+        this.setLocationRelativeTo(null);
     }
 
     private void prepareUtilityPanel() {
@@ -124,7 +128,7 @@ public class View extends JFrame {
 
         this.sortingButton = new JButton("Sort Employees");
         this.sortingButton.addActionListener(controller);
-        this.sortingButton.setActionCommand("SORT_EMPLOYEE");
+        this.sortingButton.setActionCommand("SORT_EMPLOYEES");
 
         this.statisticsButton = new JButton("Show Statistics");
         this.statisticsButton.addActionListener(controller);
@@ -143,7 +147,13 @@ public class View extends JFrame {
         this.employeeLabel = new JLabel("Employee Name");
         this.employeeLabel.setHorizontalAlignment(SwingConstants.CENTER);
         this.employeeTextField = new JTextField();
+        this.employeeTextField.setPreferredSize(new Dimension(150, 25));
         this.employeeTextField.setMaximumSize(new Dimension(150, 25));
+        this.employeeIDTextField = new JTextField();
+        this.employeeIDTextField.setMaximumSize(new Dimension(150, 25));
+        this.employeeIDTextField.setPreferredSize(new Dimension(150, 25));
+        this.employeeIDLabel = new JLabel("ID:");
+
 
         this.addEmployeeButton = new JButton("Add Employee");
         this.addEmployeeButton.addActionListener(this.controller);
@@ -154,6 +164,10 @@ public class View extends JFrame {
         this.employeePanel.add(this.employeeLabel);
         this.employeePanel.add(Box.createHorizontalStrut(15));
         this.employeePanel.add(this.employeeTextField);
+        this.employeePanel.add(Box.createHorizontalStrut(15));
+        this.employeePanel.add(this.employeeIDLabel);
+        this.employeePanel.add(Box.createHorizontalStrut(15));
+        this.employeePanel.add(this.employeeIDTextField);
         this.employeePanel.add(Box.createHorizontalStrut(15));
         this.employeePanel.add(this.addEmployeeButton);
         this.contentPane.add(this.employeePanel);
@@ -303,7 +317,7 @@ public class View extends JFrame {
         this.contentPane.add(statusPanel);
     }
 
-    public void updateEmployeeTree(Employee employee, Task task) {
+    public void updateEmployeeTree(@NotNull Employee employee, Task task) {
         // Find or create the employee node
         DefaultMutableTreeNode employeeNode = findOrCreateEmployeeNode(employee.getName());
 
@@ -317,6 +331,7 @@ public class View extends JFrame {
         treeModel.reload();
     }
 
+    @NotNull
     private DefaultMutableTreeNode findOrCreateEmployeeNode(String employeeName) {
         // Traverse the tree to find the employee node
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
@@ -381,6 +396,10 @@ public class View extends JFrame {
         return statusIdTextField;
     }
 
+    public JTextField getEmployeeIDTextField() {
+        return employeeIDTextField;
+    }
+
     public void updateTreeFromTasksManagement(TasksManagement tasksManagement) {
         // Clear the existing tree nodes
         rootNode.removeAllChildren();
@@ -440,5 +459,70 @@ public class View extends JFrame {
         if (!taskFound) {
             showError("Task with ID " + taskId + " not found.");
         }
+    }
+
+    public void showStatisticsFrame(TasksManagement tasksManagement) {
+        if(statisticsFrame != null){
+            statisticsFrame.dispose();
+        }
+        statisticsFrame = new JFrame();
+        statisticsFrame.setTitle("Statistics");
+        statisticsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        statisticsFrame.setSize(800, 600);
+        statisticsFrame.setLocationRelativeTo(null);
+
+        JPanel statisticsPanel = new JPanel();
+        JTextArea statisticsTextArea = new JTextArea();
+        statisticsTextArea.setEditable(false);
+        statisticsTextArea.setLineWrap(true);
+        statisticsTextArea.setWrapStyleWord(true);
+        statisticsPanel.setLayout(new BoxLayout(statisticsPanel, BoxLayout.Y_AXIS));
+        statisticsPanel.add(statisticsTextArea);
+
+        StringBuilder output = new StringBuilder();
+        Map<String, Map<String, Integer>> statMap = Utility.countTasksByStatus(tasksManagement);
+        for(Map.Entry<String, Map<String, Integer>> entry : statMap.entrySet()) {
+            String employeeName = entry.getKey();
+            output.append(employeeName).append("\n");
+            for (Map.Entry<String, Integer> taskEntry : entry.getValue().entrySet()) {
+                String status = taskEntry.getKey();
+                Integer workHours = taskEntry.getValue();
+                output.append(status).append("\t").append(workHours).append("\n");
+            }
+            output.append("\n");
+        }
+        statisticsTextArea.setText(output.toString());
+        statisticsFrame.add(statisticsPanel);
+        statisticsFrame.setVisible(true);
+
+    }
+
+    public void showSortedEmployees(TasksManagement tasksManagement) {
+        if (sortingFrame != null) {
+            sortingFrame.dispose();
+        }
+        sortingFrame = new JFrame();
+        sortingFrame.setTitle("SortedEmployees");
+        sortingFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        sortingFrame.setSize(800, 600);
+        sortingFrame.setLocationRelativeTo(null);
+
+        JPanel sortingPanel = new JPanel();
+        sortingPanel.setLayout(new BoxLayout(sortingPanel, BoxLayout.Y_AXIS));
+        JTextArea sortedEmployeesTextArea = new JTextArea();
+        sortedEmployeesTextArea.setEditable(false);
+        sortedEmployeesTextArea.setLineWrap(true);
+        sortedEmployeesTextArea.setWrapStyleWord(true);
+
+        String sortedEmployeesString = Utility.filterAndSortEmployees(tasksManagement);
+        if(sortedEmployeesString.isEmpty()){
+            sortedEmployeesTextArea.setText("No employees meet criteria.");
+        } else {
+            sortedEmployeesTextArea.setText(sortedEmployeesString);
+        }
+
+        sortingPanel.add(new JScrollPane(sortedEmployeesTextArea));
+        sortingFrame.add(sortingPanel);
+        sortingFrame.setVisible(true);
     }
 }

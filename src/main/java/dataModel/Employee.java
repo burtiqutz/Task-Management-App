@@ -46,7 +46,7 @@ public class Employee implements Serializable {
 
     @Override
     public String toString() {
-        return "Employee [idEmployee=" + idEmployee + ", name=" + name + "]";
+        return name;
     }
 
 }
