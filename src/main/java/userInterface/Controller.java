@@ -59,8 +59,12 @@ public class Controller implements ActionListener {
             System.out.println("Task not found");
             return;
         }
+
         Employee employee = tasksManagement.getEmployeeByTaskId(Integer.parseInt(taskID));
         tasksManagement.modifyTaskStatus(employee.getIdEmployee(), Integer.parseInt(taskID));
+        String curStatus = view.getStatusIdTextField().getText().trim();
+        String newStatus = curStatus.equals("Completed") ? "Uncompleted" : "Completed";
+        view.updateTaskStatus(taskID, newStatus);
         System.out.println("Task status updated, id: " + taskID);
     }
 
@@ -104,7 +108,8 @@ public class Controller implements ActionListener {
 
         // TODO: implement serialization
         System.out.println("Added Employee: " + employeeName);
-        view.updateEmployeeTree(employeeName, "", "", "");
+
+        view.updateEmployeeTree(employee, null);
     }
 
     private void handleAddSimpleTask() {
@@ -138,8 +143,9 @@ public class Controller implements ActionListener {
         }
         Task newTask = new SimpleTask(Integer.parseInt(taskID), "Uncompleted", startHour, endHour);
         tasksManagement.assignTaskToEmployee(employee.getIdEmployee(), newTask);
+        Task task = tasksManagement.getTask(Integer.parseInt(taskID));
 
-        view.updateEmployeeTree(employeeName, taskID,"Simple Task", taskDetails);
+        view.updateEmployeeTree(employee, task);
         System.out.println("Added Simple Task: " + employeeName + " with ID: " + taskID);
         tasksManagement.printTasks();
 
@@ -188,7 +194,7 @@ public class Controller implements ActionListener {
 
         System.out.println("Added Complex Task: " + employeeName + " with ID: " + taskID);
 
-        view.updateEmployeeTree(employeeName, taskID ,"Complex Task", task.toString());
+        view.updateEmployeeTree(employee, task);
     }
 
     public TasksManagement getTasksManagement() {

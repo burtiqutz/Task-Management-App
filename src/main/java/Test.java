@@ -14,6 +14,7 @@ public class Test {
         tasksManagement.addEmployee(employee);
         tasksManagement.assignTaskToEmployee(1, simpleTask);
         tasksManagement.assignTaskToEmployee(1, simpleTask2);
+
         FileOutputStream fos = new FileOutputStream("test_file.txt");
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(tasksManagement);

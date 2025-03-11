@@ -30,10 +30,6 @@ public non-sealed class ComplexTask extends Task implements Serializable {
     }
     @Override
     public String toString() {
-        String tasksString = "";
-        for(Task task : tasks){
-            tasksString += task.toString() + "\n";
-        }
-        return super.toString() + " ->" + tasksString;
+        return super.toString() + "(complex)";
     }
 }

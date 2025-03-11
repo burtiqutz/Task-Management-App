@@ -303,29 +303,34 @@ public class View extends JFrame {
         this.contentPane.add(statusPanel);
     }
 
-    public void updateEmployeeTree(String employeeName, String taskID, String newTaskType, String newTaskDetails) {
-        DefaultMutableTreeNode employeeNode = findOrCreateEmployeeNode(employeeName);
-        //  Check if employee has task assigned
-        if(taskID != null && !taskID.isEmpty()) {
-            DefaultMutableTreeNode taskNode = new DefaultMutableTreeNode(newTaskType + ": " + newTaskDetails);
+    public void updateEmployeeTree(Employee employee, Task task) {
+        // Find or create the employee node
+        DefaultMutableTreeNode employeeNode = findOrCreateEmployeeNode(employee.getName());
+
+        // If a task is provided, add it to the employee node
+        if (task != null) {
+            DefaultMutableTreeNode taskNode = new DefaultMutableTreeNode(task.toString());
             employeeNode.add(taskNode);
         }
 
+        // Reload the tree model to reflect changes
         treeModel.reload();
     }
 
     private DefaultMutableTreeNode findOrCreateEmployeeNode(String employeeName) {
-        for (int i = 0; i < rootNode.getChildCount(); i++) {
-            DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
-            if (childNode.toString().equals(employeeName)) {
-                return childNode;
+        // Traverse the tree to find the employee node
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
+        for (int i = 0; i < root.getChildCount(); i++) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) root.getChildAt(i);
+            if (node.getUserObject().toString().equals(employeeName)) {
+                return node; // Return the existing node
             }
         }
-        // If the employee is not found, create a new one
-        DefaultMutableTreeNode employeeNode = new DefaultMutableTreeNode(employeeName);
-        rootNode.add(employeeNode);
 
-        return employeeNode;
+        // If the employee node doesn't exist, create a new one
+        DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(employeeName);
+        root.add(newNode);
+        return newNode;
     }
 
     public void showError(String message) {
@@ -387,10 +392,8 @@ public class View extends JFrame {
         for (Employee employee : tasks.keySet()) {
             DefaultMutableTreeNode employeeNode = new DefaultMutableTreeNode(employee.getName());
 
-            // For each task assigned to the employee, create a task node
             for (Task task : tasks.get(employee)) {
-                DefaultMutableTreeNode taskNode = new DefaultMutableTreeNode(
-                        "Task ID: " + task.getIdTask() + " | Status: " + task.getStatusTask());
+                DefaultMutableTreeNode taskNode = new DefaultMutableTreeNode(task.toString());
                 employeeNode.add(taskNode);
             }
 
@@ -402,4 +405,40 @@ public class View extends JFrame {
         treeModel.reload();
     }
 
+    public void updateTaskStatus(String taskId, String newStatus) {
+        // Traverse the tree to find the task node
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) treeModel.getRoot();
+        boolean taskFound = false;
+
+        // Iterate through employee nodes
+        for (int i = 0; i < root.getChildCount(); i++) {
+            DefaultMutableTreeNode employeeNode = (DefaultMutableTreeNode) root.getChildAt(i);
+
+            // Iterate through task nodes under the employee node
+            for (int j = 0; j < employeeNode.getChildCount(); j++) {
+                DefaultMutableTreeNode taskNode = (DefaultMutableTreeNode) employeeNode.getChildAt(j);
+
+                // Check if the task node contains the task ID
+                if (taskNode.getUserObject().toString().contains("Task ID: " + taskId)) {
+                    // Update the task's status in the node
+                    String taskDetails = taskNode.getUserObject().toString();
+                    String updatedTaskDetails = taskDetails.replaceAll("Status: [^,]+", "Status: " + newStatus);
+                    taskNode.setUserObject(updatedTaskDetails);
+
+                    // Notify the tree model that the node has changed
+                    treeModel.nodeChanged(taskNode);
+                    taskFound = true;
+                    break;
+                }
+            }
+
+            if (taskFound) {
+                break;
+            }
+        }
+
+        if (!taskFound) {
+            showError("Task with ID " + taskId + " not found.");
+        }
+    }
 }
