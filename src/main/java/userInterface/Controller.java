@@ -174,8 +174,6 @@ public class Controller implements ActionListener {
         //  Get individual id's for computing complex task
         String[] taskList = view.getComplexTaskTaskListTextField().getText().trim().split("[,\\s]+");
 
-        //  Recreate task list for adding to tree
-        String formattedTaskIds = String.join(", ", taskList);
         if (employeeName.isEmpty()) {
             System.out.println("Employee name cannot be empty!");
             view.showError("Employee name cannot be empty!");
@@ -195,18 +193,13 @@ public class Controller implements ActionListener {
             view.showError("Task already exists");
             return;
         }
-        List<Task> list = new ArrayList<Task>();
-        while(tasksManagement.getTask(Integer.parseInt(taskID)) != null){
-            list.add(tasksManagement.getTask(Integer.parseInt(taskID)));
-        }
 
-        //  Find task
-        ComplexTask task = (ComplexTask) tasksManagement.getTask(Integer.parseInt(taskID));
-        if(task==null){
-            task = new ComplexTask(Integer.parseInt(taskID), "Uncompleted");
-            tasksManagement.assignTaskToEmployee(tasksManagement.getEmployeeId(employeeName), task);
+        //  Create task
+        ComplexTask task = new ComplexTask(Integer.parseInt(taskID), "Uncompleted");;
+        tasksManagement.assignTaskToEmployee(tasksManagement.getEmployeeId(employeeName), task);
+        for(String simpleTask : taskList){
+            task.addTask(tasksManagement.getTask(Integer.parseInt(simpleTask)));
         }
-        task.setTasks(list);
 
         System.out.println("Added Complex Task: " + employeeName + " with ID: " + taskID);
 

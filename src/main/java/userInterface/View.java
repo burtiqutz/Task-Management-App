@@ -440,7 +440,7 @@ public class View extends JFrame {
                 if (taskNode.getUserObject().toString().contains("Task: " + taskId)) {
                     // Update the task's status in the node
                     String taskDetails = taskNode.getUserObject().toString();
-                    String updatedTaskDetails = taskDetails.replaceAll("Status: [^,]+", "Status: " + newStatus);
+                    String updatedTaskDetails = taskDetails.replaceAll("Status: [^\\[]+", "Status: " + newStatus + " ");
                     taskNode.setUserObject(updatedTaskDetails);
 
                     // Notify the tree model that the node has changed
