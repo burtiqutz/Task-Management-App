@@ -16,6 +16,18 @@ public non-sealed class ComplexTask extends Task implements Serializable {
         this.tasks = tasks;
     }
 
+    public void addTask(Task task) {
+        if (task != null) {
+            tasks.add(task);
+        } else {
+            throw new IllegalArgumentException("Task cannot be null");
+        }
+    }
+
+    public void deleteTask(Task task) {
+        tasks.remove(task);
+    }
+
     public List<Task> getTasks() {
         return tasks;
     }

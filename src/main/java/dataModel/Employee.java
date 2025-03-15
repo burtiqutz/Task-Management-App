@@ -40,7 +40,7 @@ public class Employee implements Serializable {
         if (obj == null || getClass() != obj.getClass()) {
             return false; // If obj is null or not of type Employee
         }
-        Employee other = (Employee) obj; // Type casting
+        Employee other = (Employee) obj;
         return this.idEmployee == other.idEmployee; // Compare IDs
     }
 

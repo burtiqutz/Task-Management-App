@@ -92,7 +92,6 @@ public class View extends JFrame {
                     serializationOperations.serialize();
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                    // Handle the exception (show an error message, etc.)
                 }
             }
         });
@@ -438,7 +437,7 @@ public class View extends JFrame {
                 DefaultMutableTreeNode taskNode = (DefaultMutableTreeNode) employeeNode.getChildAt(j);
 
                 // Check if the task node contains the task ID
-                if (taskNode.getUserObject().toString().contains("Task ID: " + taskId)) {
+                if (taskNode.getUserObject().toString().contains("Task: " + taskId)) {
                     // Update the task's status in the node
                     String taskDetails = taskNode.getUserObject().toString();
                     String updatedTaskDetails = taskDetails.replaceAll("Status: [^,]+", "Status: " + newStatus);

@@ -6,8 +6,8 @@ import dataModel.ComplexTask;
 import dataModel.Employee;
 import dataModel.SimpleTask;
 import dataModel.Task;
+import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -22,11 +22,14 @@ public class Controller implements ActionListener {
     public Controller(View v) throws IOException, ClassNotFoundException {
         this.view = v;
         this.tasksManagement = SerializationOperations.deserialize();
-        //this.tasksManagement = new TasksManagement();
+        if(tasksManagement == null) {
+            System.out.println("Error during deserialization, creating new task management");
+            this.tasksManagement = new TasksManagement();
+        }
     }
 
 
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(@NotNull ActionEvent e) {
         String command = e.getActionCommand();
         switch (command) {
             case "ADD_EMPLOYEE":
@@ -121,7 +124,6 @@ public class Controller implements ActionListener {
         employee = new Employee(employeeID, employeeName);
         tasksManagement.addEmployee(employee);
 
-        // TODO: implement serialization
         System.out.println("Added Employee: " + employeeName);
 
         view.updateEmployeeTree(employee, null);
@@ -179,7 +181,7 @@ public class Controller implements ActionListener {
             view.showError("Employee name cannot be empty!");
             return;
         }
-        //  Find employee or create him
+        //  Find employee
         Employee employee = tasksManagement.getEmployee(employeeName);
         if(employee==null){
             System.out.println("Employee not found");
@@ -198,7 +200,7 @@ public class Controller implements ActionListener {
             list.add(tasksManagement.getTask(Integer.parseInt(taskID)));
         }
 
-        //  Create/find task
+        //  Find task
         ComplexTask task = (ComplexTask) tasksManagement.getTask(Integer.parseInt(taskID));
         if(task==null){
             task = new ComplexTask(Integer.parseInt(taskID), "Uncompleted");
